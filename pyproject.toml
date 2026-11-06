@@ -82,6 +82,10 @@ select = [
     "I",
     # flake8-logging-format
     "G",
+    # pylint: logging call's args must match its format string. A mismatch
+    # raises inside `logging`, which swallows it and drops the record, so the
+    # message is lost exactly when it is needed.
+    "PLE1205", "PLE1206",
     # flake8-no-pep420
     "INP",
 ]
