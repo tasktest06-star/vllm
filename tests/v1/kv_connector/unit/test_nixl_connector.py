@@ -1981,7 +1981,7 @@ def test_kv_connector_stats(default_vllm_config, dist_init):
             break
         time.sleep(0.1)  # Small delay to allow background handshake to complete
     else:
-        assert "Transfer did not complete within expected iterations"
+        pytest.fail("Transfer did not complete within expected iterations")
 
     # Now check that stats were recorded
     stats_after_transfer = connector.get_kv_connector_stats()

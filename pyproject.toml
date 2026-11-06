@@ -84,6 +84,9 @@ select = [
     "G",
     # flake8-no-pep420
     "INP",
+    # pylint: `assert "some message"` is always true, so the check it was
+    # meant to perform silently never runs.
+    "PLW0129",
 ]
 ignore = [
     # don't enforce that everything has a docstring
