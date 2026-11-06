@@ -121,9 +121,6 @@ class OvisProcessor(ProcessorMixin):
                     The sequence or batch of sequences to be encoded. Each sequence can be a string or a list of strings
                     (pretokenized string). If the sequences are provided as list of strings (pretokenized), you must set
                     `is_split_into_words=True` (to lift the ambiguity with a batch of sequences).
-                videos (`np.ndarray`, `torch.Tensor`, `list[np.ndarray]`, `list[torch.Tensor]`):
-                    The image or batch of videos to be prepared. Each video can be a 4D NumPy array or PyTorch
-                    tensor, or a nested list of 3D frames. Both channels-first and channels-last formats are supported.
                 return_tensors (`str` or [`~utils.TensorType`], *optional*):
                     If set, will return tensors of a particular framework. Acceptable values are:
                     - `'tf'`: Return TensorFlow `tf.constant` objects.
@@ -132,16 +129,20 @@ class OvisProcessor(ProcessorMixin):
                     - `'jax'`: Return JAX `jnp.ndarray` objects.
 
         Returns:
-                [`BatchFeature`]: A [`BatchFeature`] with the following fields:
-                - **input_ids** -- List of token ids to be fed to a model. Returned when `text` is not `None`.
-                - **attention_mask** -- List of indices specifying which tokens should be attended to by the model (when
-                  `return_attention_mask=True` or if *"attention_mask"* is in `self.model_input_names` and if `text` is not
-                  `None`).
-                - **pixel_values** -- Pixel values to be fed to a model. Returned when `images` is not `None`.
-                - **pixel_values_videos** -- Pixel values of videos to be fed to a model. Returned when `videos` is not `None`.
-                - **image_grid_thw** -- List of image 3D grid in LLM. Returned when `images` is not `None`.
-                - **video_grid_thw** -- List of video 3D grid in LLM. Returned when `videos` is not `None`.
-                - **second_per_grid_ts** -- List of video seconds per time grid. Returned when `videos` is not `None`.
+                [`BatchFeature`]: A [`BatchFeature`] whose fields depend on which
+                inputs were given.
+
+                When `text` is not `None`:
+                - **input_ids** -- List of token ids to be fed to a model. Each image token in `text` is expanded
+                  in place into that image's placeholder ids.
+                - **pixel_values** -- Pixel values to be fed to a model, one entry per image. Returned only when
+                  `images` is also not `None`.
+                - **grids** -- Per-image partition grid describing how each image was tiled. Returned only when
+                  `images` is also not `None`.
+
+                When `text` is `None` and `images` is not `None`:
+                - **image_placeholders** -- Per-image placeholder ids, for a caller that splices them into a
+                  prompt itself.
 
         """
         max_partition = kwargs.pop("max_partition", 9)
