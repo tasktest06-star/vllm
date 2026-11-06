@@ -46,6 +46,18 @@ class LexerShape:
     )
 
     def __init__(self, terminals: list[TerminalDef]) -> None:
+        # Matching is literal-only: `_drain` compares the buffer against
+        # `literal_strings` and never consults `TerminalDef.pattern`. A
+        # non-literal terminal would therefore be silently dropped, so refuse
+        # it here rather than parsing as if it had never been declared.
+        non_literal = sorted(t.name for t in terminals if not t.is_literal)
+        if non_literal:
+            raise ValueError(
+                "IncrementalLexer matches literal terminals only, so these "
+                f"terminals could never match: {non_literal}. Declare each "
+                "spelling as a literal in `ParserEngineConfig.terminals`, or "
+                "map it from a token id via `token_id_terminals`."
+            )
         self.terminals = sorted(
             terminals,
             key=lambda t: (not t.is_literal, -len(t.pattern.pattern)),
